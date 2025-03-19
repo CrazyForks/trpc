@@ -1,8 +1,8 @@
 import type { QueryOptions } from '@tanstack/react-query';
+import type { TRPCClient } from '@trpc/client';
 import {
   getUntypedClient,
   TRPCUntypedClient,
-  type inferRouterClient,
   type TRPCClientError,
 } from '@trpc/client';
 import type {
@@ -46,10 +46,10 @@ export type UseQueriesProcedureRecord<
   TRecord extends RouterRecord,
 > = {
   [TKey in keyof TRecord]: TRecord[TKey] extends infer $Value
-    ? $Value extends RouterRecord
-      ? UseQueriesProcedureRecord<TRoot, $Value>
-      : $Value extends AnyQueryProcedure
-        ? GetQueryOptions<TRoot, $Value>
+    ? $Value extends AnyQueryProcedure
+      ? GetQueryOptions<TRoot, $Value>
+      : $Value extends RouterRecord
+        ? UseQueriesProcedureRecord<TRoot, $Value>
         : never
     : never;
 };
@@ -78,10 +78,10 @@ export type UseSuspenseQueriesProcedureRecord<
   TRecord extends RouterRecord,
 > = {
   [TKey in keyof TRecord]: TRecord[TKey] extends infer $Value
-    ? $Value extends RouterRecord
-      ? UseSuspenseQueriesProcedureRecord<TRoot, $Value>
-      : $Value extends AnyQueryProcedure
-        ? GetSuspenseQueryOptions<TRoot, $Value>
+    ? $Value extends AnyQueryProcedure
+      ? GetSuspenseQueryOptions<TRoot, $Value>
+      : $Value extends RouterRecord
+        ? UseSuspenseQueriesProcedureRecord<TRoot, $Value>
         : never
     : never;
 };
@@ -91,7 +91,7 @@ export type UseSuspenseQueriesProcedureRecord<
  * @internal
  */
 export function createUseQueries<TRouter extends AnyRouter>(
-  client: TRPCUntypedClient<TRouter> | inferRouterClient<TRouter>,
+  client: TRPCUntypedClient<TRouter> | TRPCClient<TRouter>,
 ) {
   const untypedClient: TRPCUntypedClient<TRouter> =
     client instanceof TRPCUntypedClient ? client : getUntypedClient(client);

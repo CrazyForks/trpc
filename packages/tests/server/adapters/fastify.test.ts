@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import ws from '@fastify/websocket';
-import { waitFor } from '@testing-library/react';
+import '@testing-library/react';
 import type { HTTPHeaders, TRPCLink } from '@trpc/client';
 import {
   createTRPCClient,
@@ -396,7 +396,7 @@ describe('anonymous user', () => {
       },
     });
 
-    await waitFor(() => {
+    await vi.waitFor(() => {
       expect(onStartedMock).toHaveBeenCalledTimes(1);
       expect(onDataMock).toHaveBeenCalledTimes(2);
     });
@@ -405,7 +405,7 @@ describe('anonymous user', () => {
       id: '3',
     });
 
-    await waitFor(() => {
+    await vi.waitFor(() => {
       expect(onDataMock).toHaveBeenCalledTimes(3);
     });
 
@@ -431,7 +431,7 @@ describe('anonymous user', () => {
 
     sub.unsubscribe();
 
-    await waitFor(() => {
+    await vi.waitFor(() => {
       expect(app.ee.listenerCount('server:msg')).toBe(0);
       expect(app.ee.listenerCount('server:error')).toBe(0);
     });
@@ -468,6 +468,10 @@ describe('authorized user', () => {
   test('request info', async () => {
     const info = await app.client.request.info.query();
 
+    if (info.url) {
+      info.url = info.url.replace(/:\d+\//, ':<<redacted>>/');
+    }
+
     expect(info).toMatchInlineSnapshot(`
       Object {
         "accept": "application/jsonl",
@@ -480,6 +484,7 @@ describe('authorized user', () => {
         "isBatchCall": true,
         "signal": Object {},
         "type": "query",
+        "url": "http://localhost:<<redacted>>/trpc/request.info?batch=1&input=%7B%7D",
       }
     `);
   });

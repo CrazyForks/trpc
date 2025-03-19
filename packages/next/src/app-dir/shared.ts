@@ -1,7 +1,7 @@
 import type {
   CreateTRPCClientOptions,
-  inferRouterClient,
   Resolver,
+  TRPCClient,
 } from '@trpc/client';
 import { getUntypedClient, TRPCUntypedClient } from '@trpc/client';
 import type { inferProcedureOutput } from '@trpc/server';
@@ -26,21 +26,21 @@ export type UseProcedureRecord<
   TRecord extends RouterRecord,
 > = {
   [TKey in keyof TRecord]: TRecord[TKey] extends infer $Value
-    ? $Value extends RouterRecord
-      ? UseProcedureRecord<TRoot, $Value>
-      : $Value extends AnyQueryProcedure
-        ? Resolver<{
-            input: inferProcedureInput<$Value>;
-            output: inferTransformedProcedureOutput<TRoot, $Value>;
-            errorShape: TRoot['errorShape'];
-            transformer: TRoot['transformer'];
-          }>
+    ? $Value extends AnyQueryProcedure
+      ? Resolver<{
+          input: inferProcedureInput<$Value>;
+          output: inferTransformedProcedureOutput<TRoot, $Value>;
+          errorShape: TRoot['errorShape'];
+          transformer: TRoot['transformer'];
+        }>
+      : $Value extends RouterRecord
+        ? UseProcedureRecord<TRoot, $Value>
         : never
     : never;
 };
 
 export function createUseProxy<TRouter extends AnyRouter>(
-  client: TRPCUntypedClient<TRouter> | inferRouterClient<TRouter>,
+  client: TRPCUntypedClient<TRouter> | TRPCClient<TRouter>,
 ) {
   const untypedClient: TRPCUntypedClient<TRouter> =
     client instanceof TRPCUntypedClient ? client : getUntypedClient(client);

@@ -20,12 +20,13 @@ import type {
 } from '@tanstack/react-query';
 import type {
   CreateTRPCClientOptions,
-  inferRouterClient,
+  TRPCClient,
   TRPCRequestOptions,
   TRPCUntypedClient,
 } from '@trpc/client';
 import type {
   AnyRouter,
+  coerceAsyncIterableToArray,
   DistributiveOmit,
 } from '@trpc/server/unstable-core-do-not-import';
 import type { JSX, ReactNode } from 'react';
@@ -179,6 +180,10 @@ export interface UseTRPCSubscriptionOptions<TOutput, TError> {
    * Called when an **unrecoverable error** occurs and the subscription is closed
    */
   onError?: (err: TError) => void;
+  /**
+   * Called when the subscription is completed on the server
+   */
+  onComplete?: () => void;
 }
 
 export interface TRPCSubscriptionBaseResult<TOutput, TError> {
@@ -208,7 +213,7 @@ export interface TRPCSubscriptionConnectingResult<TOutput, TError>
 export interface TRPCSubscriptionPendingResult<TOutput>
   extends TRPCSubscriptionBaseResult<TOutput, undefined> {
   status: 'pending';
-  data: TOutput;
+  data: TOutput | undefined;
   error: null;
 }
 
@@ -228,7 +233,7 @@ export type TRPCSubscriptionResult<TOutput, TError> =
 export interface TRPCProviderProps<TRouter extends AnyRouter, TSSRContext>
   extends Omit<TRPCContextProps<TRouter, TSSRContext>, 'client'> {
   children: ReactNode;
-  client: inferRouterClient<TRouter> | TRPCUntypedClient<TRouter>;
+  client: TRPCClient<TRouter> | TRPCUntypedClient<TRouter>;
 }
 
 export type TRPCProvider<TRouter extends AnyRouter, TSSRContext> = (
@@ -238,9 +243,6 @@ export type TRPCProvider<TRouter extends AnyRouter, TSSRContext> = (
 export type CreateClient<TRouter extends AnyRouter> = (
   opts: CreateTRPCClientOptions<TRouter>,
 ) => TRPCUntypedClient<TRouter>;
-
-export type coerceAsyncIterableToArray<TValue> =
-  TValue extends AsyncIterable<infer $Inferred> ? $Inferred[] : TValue;
 
 /**
  * @internal
